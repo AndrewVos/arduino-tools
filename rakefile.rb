@@ -18,6 +18,9 @@ AVR_GCC          ||= "#{ARDUINO_HARDWARE}/tools/avr/bin/avr-gcc"
 AVR_AR           ||= "#{ARDUINO_HARDWARE}/tools/avr/bin/avr-ar"
 AVR_OBJCOPY      ||= "#{ARDUINO_HARDWARE}/tools/avr/bin/avr-objcopy"
 
+C_FILES          ||= %w{pins_arduino.c WInterrupts.c wiring.c wiring_analog.c wiring_digital.c wiring_pulse.c wiring_shift.c}
+CPP_FILES        ||= %w{HardwareSerial.cpp main.cpp Print.cpp Tone.cpp WMath.cpp WString.cpp}
+
 desc "Compile and upload"
 task :default => [:compile, :upload]
 
@@ -46,23 +49,21 @@ task :create_cpp_file do
 end
 
 task :compile_c_files do
-  c_files = %w{pins_arduino.c WInterrupts.c wiring.c wiring_analog.c wiring_digital.c wiring_pulse.c wiring_shift.c}
-  c_files.each do |c|
+  C_FILES.each do |c|
     compile_c(c)
   end
 end
 
 task :compile_cpp_files do
-  cpp_files = %w{HardwareSerial.cpp main.cpp Print.cpp Tone.cpp WMath.cpp WString.cpp}
-  cpp_files.each do |cpp|
+  CPP_FILES.each do |cpp|
     compile_g_plus_plus(File.join(ARDUINO_CORES, cpp))
   end
 end
 
 task :add_files_to_archive do
-  files = %w{pins_arduino.o WInterrupts.o wiring.o wiring_analog.o wiring_digital.o wiring_pulse.o wiring_shift.o HardwareSerial.o main.o Print.o Tone.o WMath.o WString.o}
-  files.each do |file|
-    sh "#{AVR_AR} rcs #{build_output_path('core.a')} #{build_output_path(file)}"
+  (C_FILES + CPP_FILES).each do |file|
+    file = build_output_path(File.basename(file, File.extname(file)) + ".o")
+    sh "#{AVR_AR} rcs #{build_output_path('core.a')} #{file}"
   end
 end
 
