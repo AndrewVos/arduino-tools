@@ -27,7 +27,7 @@ task :compile => [:clean, :create_cpp_file, :compile_c_files, :compile_cpp_files
 desc "Upload compiled hex file to your device"
 task :upload do
   hex = build_output_path("#{PROJECT}.hex")
-  system "#{AVRDUDE} -C#{AVRDUDE_CONF} -q -q -p#{MCU} -c#{PROGRAMMER} -P#{PORT} -b#{BITRATE} -D -Uflash:w:#{hex}:i"
+  sh "#{AVRDUDE} -C#{AVRDUDE_CONF} -q -q -p#{MCU} -c#{PROGRAMMER} -P#{PORT} -b#{BITRATE} -D -Uflash:w:#{hex}:i"
 end
 
 desc "Delete the build output directory"
@@ -62,7 +62,7 @@ end
 task :add_files_to_archive do
   files = %w{pins_arduino.o WInterrupts.o wiring.o wiring_analog.o wiring_digital.o wiring_pulse.o wiring_shift.o HardwareSerial.o main.o Print.o Tone.o WMath.o WString.o}
   files.each do |file|
-    system "#{AVR_AR} rcs #{build_output_path('core.a')} #{build_output_path(file)}"
+    sh "#{AVR_AR} rcs #{build_output_path('core.a')} #{build_output_path(file)}"
   end
 end
 
@@ -70,25 +70,25 @@ task :compile_elf do
   o = build_output_path("#{PROJECT}.o")
   elf = build_output_path("#{PROJECT}.elf")
   core_archive = build_output_path('core.a')
-  system "#{AVR_GCC} -Os -Wl,--gc-sections -mmcu=#{MCU} -o #{elf} #{o} #{core_archive} -L#{BUILD_OUTPUT} -lm"
+  sh "#{AVR_GCC} -Os -Wl,--gc-sections -mmcu=#{MCU} -o #{elf} #{o} #{core_archive} -L#{BUILD_OUTPUT} -lm"
 end
 
 task :compile_hex do
   elf = build_output_path("#{PROJECT}.elf")
   eep = build_output_path("#{PROJECT}.eep")
   hex = build_output_path("#{PROJECT}.hex")
-  system "#{AVR_OBJCOPY} -O ihex -j .eeprom --set-section-flags=.eeprom=alloc,load --no-change-warnings --change-section-lma .eeprom=0 #{elf} #{eep}"
-  system "#{AVR_OBJCOPY} -O ihex -R .eeprom #{elf} #{hex}"
+  sh "#{AVR_OBJCOPY} -O ihex -j .eeprom --set-section-flags=.eeprom=alloc,load --no-change-warnings --change-section-lma .eeprom=0 #{elf} #{eep}"
+  sh "#{AVR_OBJCOPY} -O ihex -R .eeprom #{elf} #{hex}"
 end
 
 def compile_c(file)
   file_output = build_output_path(File.basename(file, File.extname(file)) + ".o")
-  system "#{AVR_GCC} -c -g -Os -w -ffunction-sections -fdata-sections -mmcu=#{MCU} -DF_CPU=#{CPU} -DARDUINO=22 -I#{ARDUINO_CORES} #{ARDUINO_CORES}/#{file} -o#{file_output}"
+  sh "#{AVR_GCC} -c -g -Os -w -ffunction-sections -fdata-sections -mmcu=#{MCU} -DF_CPU=#{CPU} -DARDUINO=22 -I#{ARDUINO_CORES} #{ARDUINO_CORES}/#{file} -o#{file_output}"
 end
 
 def compile_g_plus_plus(file)
   file_output = build_output_path(File.basename(file, File.extname(file)) + ".o")
-  system "#{AVR_G_PLUS_PLUS} -c -g -Os -w -fno-exceptions -ffunction-sections -fdata-sections -mmcu=#{MCU} -DF_CPU=#{CPU} -DARDUINO=22 -I#{ARDUINO_CORES} #{file} -o#{file_output}"
+  sh "#{AVR_G_PLUS_PLUS} -c -g -Os -w -fno-exceptions -ffunction-sections -fdata-sections -mmcu=#{MCU} -DF_CPU=#{CPU} -DARDUINO=22 -I#{ARDUINO_CORES} #{file} -o#{file_output}"
 end
 
 def build_output_path(file)
