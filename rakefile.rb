@@ -46,15 +46,15 @@ task :create_cpp_file do
 end
 
 task :compile_c_files do
-  C_FILES = %w{pins_arduino.c WInterrupts.c wiring.c wiring_analog.c wiring_digital.c wiring_pulse.c wiring_shift.c}
-  C_FILES.each do |c|
+  c_files = %w{pins_arduino.c WInterrupts.c wiring.c wiring_analog.c wiring_digital.c wiring_pulse.c wiring_shift.c}
+  c_files.each do |c|
     compile_c(c)
   end
 end
 
 task :compile_cpp_files do
-  CPP_FILES = %w{HardwareSerial.cpp main.cpp Print.cpp Tone.cpp WMath.cpp WString.cpp}
-  CPP_FILES.each do |cpp|
+  cpp_files = %w{HardwareSerial.cpp main.cpp Print.cpp Tone.cpp WMath.cpp WString.cpp}
+  cpp_files.each do |cpp|
     compile_g_plus_plus(File.join(ARDUINO_CORES, cpp))
   end
 end
