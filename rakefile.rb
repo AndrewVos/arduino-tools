@@ -1,22 +1,22 @@
 require 'tempfile'
 require 'fileutils'
 
-PROJECT          = File.basename(Dir.glob("*.pde").first, ".pde") unless defined? PROJECT
-MCU              = 'atmega328p'                                   unless defined? MCU
-CPU              = '16000000L'                                    unless defined? CPU
-PORT             = Dir.glob('/dev/tty.usbmodem*').first           unless defined? PORT
-BITRATE          = '115200'                                       unless defined? BITRATE
-PROGRAMMER       = 'stk500v1'                                     unless defined? PROGRAMMER
+PROJECT          ||= File.basename(Dir.glob("*.pde").first, ".pde")
+MCU              ||= 'atmega328p'
+CPU              ||= '16000000L'
+PORT             ||= Dir.glob('/dev/tty.usbmodem*').first
+BITRATE          ||= '115200'
+PROGRAMMER       ||= 'stk500v1'
 
-BUILD_OUTPUT     = 'build'
-ARDUINO_HARDWARE = '/Applications/Arduino.app/Contents/Resources/Java/hardware'
-AVRDUDE          = "#{ARDUINO_HARDWARE}/tools/avr/bin/avrdude"
-AVRDUDE_CONF     = "#{ARDUINO_HARDWARE}/tools/avr/etc/avrdude.conf"
-ARDUINO_CORES    = "#{ARDUINO_HARDWARE}/arduino/cores/arduino"
-AVR_G_PLUS_PLUS  = "#{ARDUINO_HARDWARE}/tools/avr/bin/avr-g++"
-AVR_GCC          = "#{ARDUINO_HARDWARE}/tools/avr/bin/avr-gcc"
-AVR_AR           = "#{ARDUINO_HARDWARE}/tools/avr/bin/avr-ar"
-AVR_OBJCOPY      = "#{ARDUINO_HARDWARE}/tools/avr/bin/avr-objcopy"
+BUILD_OUTPUT     ||= 'build'
+ARDUINO_HARDWARE ||= '/Applications/Arduino.app/Contents/Resources/Java/hardware'
+AVRDUDE          ||= "#{ARDUINO_HARDWARE}/tools/avr/bin/avrdude"
+AVRDUDE_CONF     ||= "#{ARDUINO_HARDWARE}/tools/avr/etc/avrdude.conf"
+ARDUINO_CORES    ||= "#{ARDUINO_HARDWARE}/arduino/cores/arduino"
+AVR_G_PLUS_PLUS  ||= "#{ARDUINO_HARDWARE}/tools/avr/bin/avr-g++"
+AVR_GCC          ||= "#{ARDUINO_HARDWARE}/tools/avr/bin/avr-gcc"
+AVR_AR           ||= "#{ARDUINO_HARDWARE}/tools/avr/bin/avr-ar"
+AVR_OBJCOPY      ||= "#{ARDUINO_HARDWARE}/tools/avr/bin/avr-objcopy"
 
 desc "Compile and upload"
 task :default => [:compile, :upload]
