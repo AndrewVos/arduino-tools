@@ -50,7 +50,9 @@ end
 
 task :compile_c_files do
   C_FILES.each do |c|
-    compile_c(File.join(ARDUINO_CORES, c))
+    source = File.join(ARDUINO_CORES, c)
+    output = build_output_path(File.basename(c, File.extname(c)) + ".o")
+    sh "#{AVR_GCC} -c -g -Os -w -ffunction-sections -fdata-sections -mmcu=#{MCU} -DF_CPU=#{CPU} -DARDUINO=22 -I#{ARDUINO_CORES} #{source} -o#{output}"
   end
 end
 
@@ -80,11 +82,6 @@ task :compile_hex do
   hex = build_output_path("#{PROJECT}.hex")
   sh "#{AVR_OBJCOPY} -O ihex -j .eeprom --set-section-flags=.eeprom=alloc,load --no-change-warnings --change-section-lma .eeprom=0 #{elf} #{eep}"
   sh "#{AVR_OBJCOPY} -O ihex -R .eeprom #{elf} #{hex}"
-end
-
-def compile_c(file)
-  file_output = build_output_path(File.basename(file, File.extname(file)) + ".o")
-  sh "#{AVR_GCC} -c -g -Os -w -ffunction-sections -fdata-sections -mmcu=#{MCU} -DF_CPU=#{CPU} -DARDUINO=22 -I#{ARDUINO_CORES} #{file} -o#{file_output}"
 end
 
 def compile_g_plus_plus(file)
