@@ -1,12 +1,12 @@
 require 'tempfile'
 require 'fileutils'
 
-PROJECT          = File.basename(Dir.glob("*.pde").first, ".pde")
-MCU              = 'atmega328p'
-CPU              = '16000000L'
-PORT             = Dir.glob('/dev/tty.usbmodem*').first
-BITRATE          = '115200'
-PROGRAMMER       = 'stk500v1'
+PROJECT          = File.basename(Dir.glob("*.pde").first, ".pde") unless defined? PROJECT
+MCU              = 'atmega328p'                                   unless defined? MCU
+CPU              = '16000000L'                                    unless defined? CPU
+PORT             = Dir.glob('/dev/tty.usbmodem*').first           unless defined? PORT
+BITRATE          = '115200'                                       unless defined? BITRATE
+PROGRAMMER       = 'stk500v1'                                     unless defined? PROGRAMMER
 
 BUILD_OUTPUT     = 'build'
 ARDUINO_HARDWARE = '/Applications/Arduino.app/Contents/Resources/Java/hardware'
