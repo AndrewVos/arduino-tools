@@ -4,7 +4,7 @@ require 'fileutils'
 PROJECT          = File.basename(Dir.glob("*.pde").first, ".pde")
 MCU              = 'atmega328p'
 CPU              = '16000000L'
-PORT             = '/dev/tty.usbmodem641'
+PORT             = Dir.glob('/dev/tty.usbmodem*').first
 BITRATE          = '115200'
 PROGRAMMER       = 'stk500v1'
 
