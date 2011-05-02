@@ -18,8 +18,13 @@ AVR_GCC          ||= "#{ARDUINO_HARDWARE}/tools/avr/bin/avr-gcc"
 AVR_AR           ||= "#{ARDUINO_HARDWARE}/tools/avr/bin/avr-ar"
 AVR_OBJCOPY      ||= "#{ARDUINO_HARDWARE}/tools/avr/bin/avr-objcopy"
 
+def build_output_path(file)
+  Dir.mkdir(BUILD_OUTPUT) if Dir.exist?(BUILD_OUTPUT) == false
+  File.join(BUILD_OUTPUT, file)
+end
+
 C_FILES          ||= Dir.glob("#{ARDUINO_CORES}/*.c")
-CPP_FILES        ||= Dir.glob("#{ARDUINO_CORES}/*.cpp")
+CPP_FILES        ||= Dir.glob("#{ARDUINO_CORES}/*.cpp") + [build_output_path("#{PROJECT}.cpp")]
 
 desc "Compile and upload"
 task :default => [:compile, :upload]
@@ -45,7 +50,6 @@ task :create_cpp_file do
     file.puts '#include "WProgram.h"'
     file.puts File.read(pde)
   end
-  compile_g_plus_plus(cpp)
 end
 
 task :compile_c_files do
@@ -57,7 +61,8 @@ end
 
 task :compile_cpp_files do
   CPP_FILES.each do |source|
-    compile_g_plus_plus(source)
+    output = build_output_path(File.basename(source, File.extname(source)) + ".o")
+    sh "#{AVR_G_PLUS_PLUS} -c -g -Os -w -fno-exceptions -ffunction-sections -fdata-sections -mmcu=#{MCU} -DF_CPU=#{CPU} -DARDUINO=22 -I#{ARDUINO_CORES} #{source} -o#{output}"
   end
 end
 
@@ -81,14 +86,4 @@ task :compile_hex do
   hex = build_output_path("#{PROJECT}.hex")
   sh "#{AVR_OBJCOPY} -O ihex -j .eeprom --set-section-flags=.eeprom=alloc,load --no-change-warnings --change-section-lma .eeprom=0 #{elf} #{eep}"
   sh "#{AVR_OBJCOPY} -O ihex -R .eeprom #{elf} #{hex}"
-end
-
-def compile_g_plus_plus(file)
-  file_output = build_output_path(File.basename(file, File.extname(file)) + ".o")
-  sh "#{AVR_G_PLUS_PLUS} -c -g -Os -w -fno-exceptions -ffunction-sections -fdata-sections -mmcu=#{MCU} -DF_CPU=#{CPU} -DARDUINO=22 -I#{ARDUINO_CORES} #{file} -o#{file_output}"
-end
-
-def build_output_path(file)
-  Dir.mkdir(BUILD_OUTPUT) if Dir.exist?(BUILD_OUTPUT) == false
-  File.join(BUILD_OUTPUT, file)
 end
