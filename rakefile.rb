@@ -18,8 +18,8 @@ AVR_GCC          ||= "#{ARDUINO_HARDWARE}/tools/avr/bin/avr-gcc"
 AVR_AR           ||= "#{ARDUINO_HARDWARE}/tools/avr/bin/avr-ar"
 AVR_OBJCOPY      ||= "#{ARDUINO_HARDWARE}/tools/avr/bin/avr-objcopy"
 
-C_FILES          ||= %w{pins_arduino.c WInterrupts.c wiring.c wiring_analog.c wiring_digital.c wiring_pulse.c wiring_shift.c}
-CPP_FILES        ||= %w{HardwareSerial.cpp main.cpp Print.cpp Tone.cpp WMath.cpp WString.cpp}
+C_FILES          ||= Dir.glob("#{ARDUINO_CORES}/*.c")
+CPP_FILES        ||= Dir.glob("#{ARDUINO_CORES}/*.cpp")
 
 desc "Compile and upload"
 task :default => [:compile, :upload]
@@ -49,16 +49,15 @@ task :create_cpp_file do
 end
 
 task :compile_c_files do
-  C_FILES.each do |c|
-    source = File.join(ARDUINO_CORES, c)
-    output = build_output_path(File.basename(c, File.extname(c)) + ".o")
+  C_FILES.each do |source|
+    output = build_output_path(File.basename(source, File.extname(source)) + ".o")
     sh "#{AVR_GCC} -c -g -Os -w -ffunction-sections -fdata-sections -mmcu=#{MCU} -DF_CPU=#{CPU} -DARDUINO=22 -I#{ARDUINO_CORES} #{source} -o#{output}"
   end
 end
 
 task :compile_cpp_files do
-  CPP_FILES.each do |cpp|
-    compile_g_plus_plus(File.join(ARDUINO_CORES, cpp))
+  CPP_FILES.each do |source|
+    compile_g_plus_plus(source)
   end
 end
 
