@@ -30,7 +30,7 @@ desc "Compile and upload"
 task :default => [:compile, :upload]
 
 desc "Compile the hex file"
-task :compile => [:clean, :create_cpp_file, :compile_c_files, :compile_cpp_files, :add_files_to_archive, :compile_elf, :compile_hex]
+task :compile => [:clean, :preprocess, :c, :cpp, :hex]
 
 desc "Upload compiled hex file to your device"
 task :upload do
@@ -43,7 +43,7 @@ task :clean do
   FileUtils.rm_rf(BUILD_OUTPUT)
 end
 
-task :create_cpp_file do
+task :preprocess do
   pde = "#{PROJECT}.pde"
   cpp = build_output_path("#{PROJECT}.cpp")
   File.open(cpp, 'w') do |file|
@@ -52,38 +52,33 @@ task :create_cpp_file do
   end
 end
 
-task :compile_c_files do
+task :c do
   C_FILES.each do |source|
     output = build_output_path(File.basename(source, File.extname(source)) + ".o")
     sh "#{AVR_GCC} -c -g -Os -w -ffunction-sections -fdata-sections -mmcu=#{MCU} -DF_CPU=#{CPU} -DARDUINO=22 -I#{ARDUINO_CORES} #{source} -o#{output}"
   end
 end
 
-task :compile_cpp_files do
+task :cpp do
   CPP_FILES.each do |source|
     output = build_output_path(File.basename(source, File.extname(source)) + ".o")
     sh "#{AVR_G_PLUS_PLUS} -c -g -Os -w -fno-exceptions -ffunction-sections -fdata-sections -mmcu=#{MCU} -DF_CPU=#{CPU} -DARDUINO=22 -I#{ARDUINO_CORES} #{source} -o#{output}"
   end
 end
 
-task :add_files_to_archive do
+task :hex do
+  o       = build_output_path("#{PROJECT}.o")
+  elf     = build_output_path("#{PROJECT}.elf")
+  archive = build_output_path('core.a')
+  eep     = build_output_path("#{PROJECT}.eep")
+  hex     = build_output_path("#{PROJECT}.hex")
+
   (C_FILES + CPP_FILES).each do |file|
     file = build_output_path(File.basename(file, File.extname(file)) + ".o")
-    sh "#{AVR_AR} rcs #{build_output_path('core.a')} #{file}"
+    sh "#{AVR_AR} rcs #{archive} #{file}"
   end
-end
 
-task :compile_elf do
-  o = build_output_path("#{PROJECT}.o")
-  elf = build_output_path("#{PROJECT}.elf")
-  core_archive = build_output_path('core.a')
-  sh "#{AVR_GCC} -Os -Wl,--gc-sections -mmcu=#{MCU} -o #{elf} #{o} #{core_archive} -L#{BUILD_OUTPUT} -lm"
-end
-
-task :compile_hex do
-  elf = build_output_path("#{PROJECT}.elf")
-  eep = build_output_path("#{PROJECT}.eep")
-  hex = build_output_path("#{PROJECT}.hex")
+  sh "#{AVR_GCC} -Os -Wl,--gc-sections -mmcu=#{MCU} -o #{elf} #{o} #{archive} -L#{BUILD_OUTPUT} -lm"
   sh "#{AVR_OBJCOPY} -O ihex -j .eeprom --set-section-flags=.eeprom=alloc,load --no-change-warnings --change-section-lma .eeprom=0 #{elf} #{eep}"
   sh "#{AVR_OBJCOPY} -O ihex -R .eeprom #{elf} #{hex}"
 end
