@@ -49,22 +49,20 @@ task :preprocess do
 end
 
 task :compile do
-  cpp = build_output_path("#{PROJECT}.cpp")
-  gplusplus cpp
+  threads = [
+    Thread.new {
+      gplusplus build_output_path("#{PROJECT}.cpp")
+    },
+    Thread.new {
+      Dir.glob("#{ARDUINO_ROOT}/hardware/arduino/cores/arduino/*.c").each { |c| gcc c }
+    },
+    Thread.new {
+      Dir.glob("#{ARDUINO_ROOT}/hardware/arduino/cores/arduino/*.cpp").each { |cpp| gplusplus cpp }
+    }
+  ]
+  threads.each { |t| t.join }
 
-  Dir.glob("#{ARDUINO_ROOT}/hardware/arduino/cores/arduino/*.c").each do |c|
-    gcc c
-  end
-  Dir.glob("#{ARDUINO_ROOT}/hardware/arduino/cores/arduino/*.cpp").each do |cpp|
-    gplusplus cpp
-  end
-  Dir.glob("#{ARDUINO_ROOT}/hardware/arduino/cores/arduino/*.cpp").each do |cpp|
-    gplusplus cpp
-  end
-
-  Dir.glob(build_output_path("*.o")).each do |o|
-    o o
-  end
+  Dir.glob(build_output_path("*.o")).each { |o| o o }
 
   sh "#{AVR_GCC} -Os -Wl,--gc-sections -mmcu=atmega328p -o #{build_output_path("#{PROJECT}.cpp.elf")} #{build_output_path("#{PROJECT}.cpp.o")} #{build_output_path("core.a")} -L#{build_output_path("#{PROJECT}.tmp")} -lm"
 
